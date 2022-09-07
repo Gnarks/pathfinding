@@ -2,6 +2,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import animation
 from matplotlib import colors
+from math import sqrt
+
+
+class Tile():
+    def __init__(self,position,g_cost,h_cost,parent=None):
+        self.position = position
+        self.g_cost = g_cost
+        self.h_cost = h_cost
+        self.f_cost = g_cost+h_cost
+        self.parent = parent
+
 
 
 def step(X :np.ndarray):
@@ -11,13 +22,31 @@ def step(X :np.ndarray):
     """
     global cur_pos,start,end
     X1 = X
-    
+
+    best = open[0]
+    for free in open:
+        if best.f_cost > free.f_cost or (best.f_cost == free.f_cost and best.h_cost > free.h_cost):
+            best = free
+
+    open.remove(best)
+    print(best.position, best.g_cost, best.h_cost)
+    closed.append(best)
+    for i in range(len(closed)):
+        X1[closed[i].position] = CANT
+    cur_pos = best.position
+
     for dx,dy in neighbourhood:
-        print(cur_pos[0]+dx,cur_pos[1]+dy)
-        if X1[cur_pos[0]+dx,cur_pos[1]+dy] != WALL and X1[cur_pos[0]+dx,cur_pos[1]+dy] != SPECIAL:
-            X1[cur_pos[0]+dx,cur_pos[1]+dy] = CAN
-    X1[cur_pos] = CANT
-    cur_pos = (cur_pos[0]+1,cur_pos[1]+1)
+        ngb_pos = (cur_pos[0]+dx,cur_pos[1]+dy)
+        g = round(sqrt((start[0]-ngb_pos[0])**2 + (start[1]-ngb_pos[1])**2)*10)
+        h = round(sqrt((end[0]-ngb_pos[0])**2 + (end[1]-ngb_pos[1])**2)*10)
+        tile= Tile(ngb_pos,g,h)
+        if X[ngb_pos] != WALL or closed.__contains__(tile) or X[ngb_pos] != SPECIAL:
+            open.append(Tile(ngb_pos,g,h))
+            
+
+        if X1[cur_pos[0]+dx,cur_pos[1]+dy] != WALL and X1[cur_pos[0]+dx,cur_pos[1]+dy] != SPECIAL and X1[cur_pos[0]+dx,cur_pos[1]+dy] != CANT:
+            X1[cur_pos[0]+dx,cur_pos[1]+dy] = CAN # problemes ça ne revien pas sur ses pas, ignore les murs, etc
+
     return X1
 
 
@@ -31,25 +60,26 @@ EMPTY, WALL,CAN,CANT,SPECIAL = 0,1,2,3,4
 nx,ny = 11,11
 
 X = np.ones((nx,ny))
-X[1:nx-1,1:ny-1] = 0
+X[1:nx-1,1:ny-1] = EMPTY
 fig, ax = plt.subplots()
 im = plt.imshow(X,cmap,norm=norm)
 cur_pos,start,end = (0,0),(0,0),(0,0)
-
+open=[]
+closed=[]
 
 def onclick(event):
     """
     on the first click draws the start then end then walls
     """
     global cur_pos,start,end
-    if event.inaxes:
+    if event.inaxes and X[round(event.ydata), round(event.xdata)] != SPECIAL:
         if onclick.clicked<2:
             X[round(event.ydata), round(event.xdata)] = SPECIAL
             if onclick.clicked == 0:
                 start = (round(event.ydata), round(event.xdata))
-                cur_pos = start
             else:
                 end = (round(event.ydata), round(event.xdata))
+                open.append(Tile(start,0,round(sqrt((end[0]-start[0])**2 + (end[1]-start[1])**2)*10)))
         else:
             X[round(event.ydata), round(event.xdata)] = WALL
         onclick.clicked +=1
