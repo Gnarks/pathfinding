@@ -25,36 +25,44 @@ def step(X :np.ndarray):
 
     best = open[0]
     for free in open:
-        if best.f_cost > free.f_cost or (best.f_cost == free.f_cost and best.h_cost > free.h_cost):
+        #print(f"choix {free.position} f:{free.f_cost} g:{free.g_cost}  h:{free.h_cost}")
+        if free.position == end or best.f_cost > free.f_cost or (best.f_cost == free.f_cost and best.h_cost > free.h_cost):
             best = free
+            #print(f"la tuile choisie est  {free.position} f:{free.f_cost} g:{free.g_cost}  h:{free.h_cost}")
             if best.position == end:
                 print("you finished !!!")
+                print(best.parent.position)
+                X1[best.parent.position]
+                return X1
 
     open.remove(best)
     closed.append(best)
     for tile in closed:
         X1[tile.position] = CANT
     cur_pos = best.position
+    print(f"best position = {best.position}")
+    
+     
 
     for dx,dy in neighbourhood:
         good = True
         ngb_pos = (cur_pos[0]+dx,cur_pos[1]+dy)
         for tile in closed:
+            print(tile.position)
             if ngb_pos == tile.position:
+                print("trouvé comme cant")
                 good = False
 
-        if X[ngb_pos] != WALL or not good:
-            g = round(sqrt((start[0]-ngb_pos[0])**2 + (start[1]-ngb_pos[1])**2)*10)# relatif au parent (g cost du parent + le mouvement (14 diagonal 10 horizontal))
+        if X[ngb_pos] != WALL and good:
+            g = best.g_cost + 14 if abs(dx+dy) == 2 else 10
             h = round(sqrt((end[0]-ngb_pos[0])**2 + (end[1]-ngb_pos[1])**2)*10)
-            neighbour = Tile(ngb_pos,g,h)
+            neighbour = Tile(ngb_pos,g,h,best)
+            open.append(neighbour)
 
+        for tile in open:
+            if X1[tile.position] != SPECIAL and X1[tile.position] != WALL and X1[tile.position]!=CANT:
+                X1[tile.position] = CAN
             
-
-    for tile in open:
-        print(tile.position)
-        if X1[cur_pos[0]+dx,cur_pos[1]+dy] != SPECIAL:
-            X1[cur_pos[0]+dx,cur_pos[1]+dy] = CAN # problemes ça ne revien pas sur ses pas, ignore les murs, etc
-
     return X1
 
 
