@@ -31,8 +31,10 @@ def step(X :np.ndarray):
             #print(f"la tuile choisie est  {free.position} f:{free.f_cost} g:{free.g_cost}  h:{free.h_cost}")
             if best.position == end:
                 print("you finished !!!")
-                print(best.parent.position)
-                X1[best.parent.position]
+                parent = best.parent
+                while parent:
+                    X1[parent.position] = SPECIAL
+                    parent = parent.parent
                 return X1
 
     open.remove(best)
@@ -45,15 +47,13 @@ def step(X :np.ndarray):
      
 
     for dx,dy in neighbourhood:
-        good = True
+        nogood = True
         ngb_pos = (cur_pos[0]+dx,cur_pos[1]+dy)
         for tile in closed:
-            print(tile.position)
             if ngb_pos == tile.position:
-                print("trouvé comme cant")
-                good = False
+                nogood = False
 
-        if X[ngb_pos] != WALL and good:
+        if X[ngb_pos] != WALL and nogood:
             g = best.g_cost + 14 if abs(dx+dy) == 2 else 10
             h = round(sqrt((end[0]-ngb_pos[0])**2 + (end[1]-ngb_pos[1])**2)*10)
             neighbour = Tile(ngb_pos,g,h,best)
