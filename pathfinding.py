@@ -27,24 +27,32 @@ def step(X :np.ndarray):
     for free in open:
         if best.f_cost > free.f_cost or (best.f_cost == free.f_cost and best.h_cost > free.h_cost):
             best = free
+            if best.position == end:
+                print("you finished !!!")
 
     open.remove(best)
-    print(best.position, best.g_cost, best.h_cost)
     closed.append(best)
-    for i in range(len(closed)):
-        X1[closed[i].position] = CANT
+    for tile in closed:
+        X1[tile.position] = CANT
     cur_pos = best.position
 
     for dx,dy in neighbourhood:
+        good = True
         ngb_pos = (cur_pos[0]+dx,cur_pos[1]+dy)
-        g = round(sqrt((start[0]-ngb_pos[0])**2 + (start[1]-ngb_pos[1])**2)*10)
-        h = round(sqrt((end[0]-ngb_pos[0])**2 + (end[1]-ngb_pos[1])**2)*10)
-        tile= Tile(ngb_pos,g,h)
-        if X[ngb_pos] != WALL or closed.__contains__(tile) or X[ngb_pos] != SPECIAL:
-            open.append(Tile(ngb_pos,g,h))
+        for tile in closed:
+            if ngb_pos == tile.position:
+                good = False
+
+        if X[ngb_pos] != WALL or not good:
+            g = round(sqrt((start[0]-ngb_pos[0])**2 + (start[1]-ngb_pos[1])**2)*10)# relatif au parent (g cost du parent + le mouvement (14 diagonal 10 horizontal))
+            h = round(sqrt((end[0]-ngb_pos[0])**2 + (end[1]-ngb_pos[1])**2)*10)
+            neighbour = Tile(ngb_pos,g,h)
+
             
 
-        if X1[cur_pos[0]+dx,cur_pos[1]+dy] != WALL and X1[cur_pos[0]+dx,cur_pos[1]+dy] != SPECIAL and X1[cur_pos[0]+dx,cur_pos[1]+dy] != CANT:
+    for tile in open:
+        print(tile.position)
+        if X1[cur_pos[0]+dx,cur_pos[1]+dy] != SPECIAL:
             X1[cur_pos[0]+dx,cur_pos[1]+dy] = CAN # problemes ça ne revien pas sur ses pas, ignore les murs, etc
 
     return X1
