@@ -12,23 +12,23 @@ class Tile():
         self.h_cost = h_cost
         self.f_cost = g_cost+h_cost
         self.parent = parent
+        self.x = position[0]
+        self.y =[position[1]]
 
 
 
 def step(X :np.ndarray):
     """
     function that'll make one step toward the most promising case
-    https://www.youtube.com/watch?v=-L-WgKMFuhE&ab_channel=SebastianLague
+    inspired by : https://www.youtube.com/watch?v=-L-WgKMFuhE&ab_channel=SebastianLague
     """
     global cur_pos,start,end
     X1 = X
 
     best = open[0]
     for free in open:
-        #print(f"choix {free.position} f:{free.f_cost} g:{free.g_cost}  h:{free.h_cost}")
         if free.position == end or best.f_cost > free.f_cost or (best.f_cost == free.f_cost and best.h_cost > free.h_cost):
             best = free
-            #print(f"la tuile choisie est  {free.position} f:{free.f_cost} g:{free.g_cost}  h:{free.h_cost}")
             if best.position == end:
                 print("you finished !!!")
                 parent = best.parent
@@ -36,35 +36,36 @@ def step(X :np.ndarray):
                     X1[parent.position] = SPECIAL
                     parent = parent.parent
                 return X1
-
+    
+    
     open.remove(best)
     closed.append(best)
-    for tile in closed:
-        X1[tile.position] = CANT
+    closed_pos.append(best.position)
     cur_pos = best.position
-    print(f"best position = {best.position}")
-    
-     
 
     for dx,dy in neighbourhood:
-        nogood = True
         ngb_pos = (cur_pos[0]+dx,cur_pos[1]+dy)
-        for tile in closed:
-            if ngb_pos == tile.position:
-                nogood = False
 
-        if X[ngb_pos] != WALL and nogood:
-            g = best.g_cost + 14 if abs(dx+dy) == 2 else 10
+        if X[ngb_pos] != WALL and not closed_pos.__contains__(ngb_pos):
+            g = best.g_cost + 14 if abs(dx) +abs(dy) == 2 else best.g_cost + 10
             h = round(sqrt((end[0]-ngb_pos[0])**2 + (end[1]-ngb_pos[1])**2)*10)
-            neighbour = Tile(ngb_pos,g,h,best)
-            open.append(neighbour)
+            if open_tiles[ngb_pos[0]][ngb_pos[1]] == 0:
+                neighbour =Tile(ngb_pos,g,h,best)
+                open.append(neighbour)
+                open_tiles[ngb_pos[0]][ngb_pos[1]] = neighbour
+            elif open_tiles[ngb_pos[0]][ngb_pos[1]].g_cost > g:
+                neighbour =Tile(ngb_pos,g,h,best)
+                open_tiles[ngb_pos[0]][ngb_pos[1]] = neighbour
 
-        for tile in open:
-            if X1[tile.position] != SPECIAL and X1[tile.position] != WALL and X1[tile.position]!=CANT:
-                X1[tile.position] = CAN
-            
+    for tile in closed:
+        if X1[tile.position] != SPECIAL:
+            X1[tile.position] = CANT
+    
+    for tile in open:
+        if X1[tile.position] != SPECIAL and X1[tile.position] != WALL and X1[tile.position]!=CANT:
+            X1[tile.position] = CAN
+
     return X1
-
 
 neighbourhood = ((-1,-1), (-1,0), (-1,1), (0,-1), (0, 1), (1,-1), (1,0), (1,1))
 colors_list = ["white","black","green","red","cyan"]
@@ -73,7 +74,7 @@ bounds = [0,1,2,3,4,5]
 norm = colors.BoundaryNorm(bounds, cmap.N)
 EMPTY, WALL,CAN,CANT,SPECIAL = 0,1,2,3,4
 
-nx,ny = 11,11
+nx,ny = 21,21
 
 X = np.ones((nx,ny))
 X[1:nx-1,1:ny-1] = EMPTY
@@ -82,6 +83,8 @@ im = plt.imshow(X,cmap,norm=norm)
 cur_pos,start,end = (0,0),(0,0),(0,0)
 open=[]
 closed=[]
+open_tiles = np.zeros((nx,ny),dtype=Tile)
+closed_pos= []
 
 def onclick(event):
     """
