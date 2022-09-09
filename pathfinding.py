@@ -30,7 +30,6 @@ def step(X :np.ndarray):
         if free.position == end or best.f_cost > free.f_cost or (best.f_cost == free.f_cost and best.h_cost > free.h_cost):
             best = free
             if best.position == end:
-                print("you finished !!!")
                 parent = best.parent
                 while parent:
                     X1[parent.position] = SPECIAL
@@ -85,6 +84,7 @@ open=[]
 closed=[]
 open_tiles = np.zeros((nx,ny),dtype=Tile)
 closed_pos= []
+go = False
 
 def onclick(event):
     """
@@ -119,9 +119,11 @@ def drag_draw(event):
                 X[round(event.ydata), round(event.xdata)] = EMPTY
 
 def key_pressed(event):
+    global go
     if event.key == " " and onclick.clicked>=2:
-        update.X = step(update.X)
-
+        #update.X = step(update.X)
+        go = True
+        
 #handling events to draw the start, end and after both are drawn draw walls
 pressed_cid = fig.canvas.mpl_connect('button_press_event', onclick)
 # draws walls when the a button is pressed and 
@@ -130,12 +132,13 @@ drag_cid = fig.canvas.mpl_connect('motion_notify_event', drag_draw)
 key_cid = fig.canvas.mpl_connect("key_press_event",key_pressed)
 
 def update(i):
-    """
-    if onclick.clicked>=2:
-        update.X = step(update.X)"""
+    global go
+    #if onclick.clicked>=2:
+    if go :
+        update.X = step(update.X)
     im.set_data(update.X)
 update.X = X
 
-delay = 10
+delay = 40
 anim = animation.FuncAnimation(fig,update,interval=delay,frames= 200)
 plt.show()
