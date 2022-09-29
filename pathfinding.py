@@ -22,20 +22,19 @@ def step(X :np.ndarray):
     function that'll make one step toward the most promising case
     inspired by : https://www.youtube.com/watch?v=-L-WgKMFuhE&ab_channel=SebastianLague
     """
-    global cur_pos,start,end
+    global cur_pos,start,end, open,closed,closed_pos,open_tiles
     X1 = X
 
     best = open[0]
     for free in open:
         if free.position == end or best.f_cost > free.f_cost or (best.f_cost == free.f_cost and best.h_cost > free.h_cost):
             best = free
-            if best.position == end:
+            if best.position == end: 
                 parent = best.parent
                 while parent:
                     X1[parent.position] = SPECIAL
                     parent = parent.parent
                 return X1
-    
     
     open.remove(best)
     closed.append(best)
@@ -54,10 +53,12 @@ def step(X :np.ndarray):
                 open_tiles[ngb_pos[0]][ngb_pos[1]] = neighbour
             elif open_tiles[ngb_pos[0]][ngb_pos[1]].g_cost > g:
                 neighbour =Tile(ngb_pos,g,h,best)
+                open.append(neighbour)
                 open_tiles[ngb_pos[0]][ngb_pos[1]] = neighbour
 
     for tile in closed:
         if X1[tile.position] != SPECIAL:
+            tile
             X1[tile.position] = CANT
     
     for tile in open:
@@ -73,8 +74,7 @@ bounds = [0,1,2,3,4,5]
 norm = colors.BoundaryNorm(bounds, cmap.N)
 EMPTY, WALL,CAN,CANT,SPECIAL = 0,1,2,3,4
 
-nx,ny = 21,21
-
+nx,ny = 51,51
 X = np.ones((nx,ny))
 X[1:nx-1,1:ny-1] = EMPTY
 fig, ax = plt.subplots()
@@ -103,7 +103,6 @@ def onclick(event):
             X[round(event.ydata), round(event.xdata)] = WALL
         onclick.clicked +=1
         im.set_data(X)
-# count the number of clicks to decide in the function if a start/end/wall should be drawn 
 onclick.clicked = 0
 
 def drag_draw(event):
@@ -139,6 +138,6 @@ def update(i):
     im.set_data(update.X)
 update.X = X
 
-delay = 40
+delay = 10
 anim = animation.FuncAnimation(fig,update,interval=delay,frames= 200)
 plt.show()
