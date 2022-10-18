@@ -138,6 +138,6 @@ def update(i):
     im.set_data(update.X)
 update.X = X
 
-delay = 10
-anim = animation.FuncAnimation(fig,update,interval=delay,frames= 200)
+delay = 1
+anim = animation.FuncAnimation(fig,update,interval=delay,frames= 5)
 plt.show()
